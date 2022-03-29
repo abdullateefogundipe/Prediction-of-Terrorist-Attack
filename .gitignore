@@ -1,0 +1,6 @@
+ .ipynb_checkpoints/
+ data/**
+data/globalterrorismdb_0718dist.csv
+.ipynb_checkpoints/feature_engineering-checkpoint.ipynb
+.ipynb_checkpoints/README-checkpoint.md
+.ipynb_checkpoints/.gitignore-checkpoint
