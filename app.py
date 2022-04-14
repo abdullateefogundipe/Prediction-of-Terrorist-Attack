@@ -1,76 +1,66 @@
-import streamlit as st
+# -*- coding: utf-8 -*-
+"""
+Created on Tue April 11 21:40:41 2020
+@author: limitless.ao
+"""
+
+# 1. Library imports
+import uvicorn
+from fastapi import FastAPI
+from TerroristAttacks import TerroristAttack
+import numpy as np
+import pickle
 import pandas as pd
-import joblib
+# 2. Create the app object
+app = FastAPI()
+pickle_in = open("classifier.pkl","rb")
+classifier=pickle.load(pickle_in)
 
+# 3. Index route, opens automatically on http://127.0.0.1:8000
+@app.get('/')
+def index():
+    return {'message': 'Hello, World'}
 
-# Title
-st.header("PREDICTION OF SUCCESSFUL TERRORIST ATTACK")
+# 4. Route with a single parameter, returns the parameter within a message
+#    Located at: http://127.0.0.1:8000/AnyNameHere
+@app.get('/{name}')
+def get_name(name: str):
+    return {'Welcome To ANN GROUP CAPSTONE PROJECT': f'{name}'}
 
-# Input bar 1
-Year = st.number_input("Enter Year [1970 - 2017]")
+# 3. Expose the prediction functionality, make a prediction from the passed
+#    JSON data and return the predicted terrorist attack successfulness
+@app.post('/predict')
+def predict_SuccessAttacks(data:TerroristAttack):
+    data = data.dict()
+    Year = data['Year']
+    Month = data['Month']
+    Day = data['Day']
+    Extended = data['Extended']
+    Country = data['Country']
+    Region=data['Region']
+    Suicide=data['Suicide']
+    Attack_Type=data['Attack_Type']
+    Target_Type=data['Target_Type']
+    individual=data['individual']
+    Nationality_target=data['Nationality_target']
+    Attack_Group=data['Attack_Group']
+    Weapon=data['Weapon']
+    Number_of_Killed=data['Number_of_Killed']
 
-# Input bar 2
-Month = st.number_input("Enter Month [1-12]")
-
-# Input bar 3
-Day = st.number_input("Enter Day")
-
-# Input bar 4
-Extended = st.number_input("Enter Extended [0-1]")
-
-# Input bar 5
-Country = st.number_input("Enter Country")
-
-# Input bar 6
-Region = st.number_input("Enter Region")
-
-# Input bar 7
-Suicide = st.number_input("Enter Suicide")
-
-# Input bar 8
-Attack_Type = st.number_input("Enter Attack_Type")
-
-# Input bar 9
-Target_Type = st.number_input("Target_Type")
-
-# Input bar 10
-individual = st.number_input("Enter individual")
-
-
-# Input bar 11
-Nationality_target = st.number_input("Enter Nationality_target")
-
-# Input bar 12
-Attack_Group = st.number_input("Enter Attack_Group'")
-
-# Input bar 13
-Weapon = st.number_input("Enter Weapon")
-
-# Input bar 14
-Number_of_Killed = st.number_input("Enter Number_of_Killed")
-
-
-# If button is pressed
-if st.button("Submit"):
-    
-    # Unpickle classifier
-    clf = joblib.load("classifier1.pkl")
-    
-    # Store inputs into dataframe
-    X = pd.DataFrame([[Year, Month, Day, Extended, Country, Region, Suicide,Attack_Type, Target_Type, individual, Nationality_target, Attack_Group, Weapon, Number_of_Killed]], 
-                     columns = ['Year', 'Month', 'Day', 'Extended', 'Country', 'Region', 'Suicide',
-       'Attack_Type', 'Target_Type', 'individual', 'Nationality_target',
-       'Attack_Group', 'Weapon', 'Number_of_Killed'])
-   
-    
-    # Get prediction
-    prediction = clf.predict(X)[0]
-    
-    if prediction == 1:
+  
+   # print(classifier.predict([['Year', 'Month', 'Day', 'Extended', 'Country', 'Region', 'Suicide','Attack_Type', 'Target_Type',   'individual', 'Nationality_target', 'Attack_Group', 'Weapon', 'Number_of_Killed']]))
+    prediction = classifier.predict([[Year, Month, Day, Extended, Country, Region, Suicide,Attack_Type, Target_Type, individual, Nationality_target, Attack_Group, Weapon, Number_of_Killed]])
+    if(prediction[0]==1):
         prediction="Successful Terrorist Attack"
     else:
         prediction="Unsuccessful Terrorist Attack"
-   
+    return {
+        'prediction': prediction
+    }
+
+# 5. Run the API with uvicorn
+#    Will run on http://127.0.0.1:8000
+if __name__ == '__main__':
+    uvicorn.run(app, host='127.0.0.1', port=8000)
     
-    #Output prediction
-    st.text(f"The prediction is a {prediction}")
+#uvicorn app:app --reload
